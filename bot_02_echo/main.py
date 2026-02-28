@@ -32,23 +32,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.user_data.get("active", False):
         return
 
-    message = update.message
-
-    if message.text:
-        await message.reply_text(message.text)
-    elif message.document:
-        await message.reply_document(message.document.file_id)
-    elif message.video_note:
-        await message.reply_video(message.video_note.file_id)
-    elif message.audio:
-        await message.reply_audio(message.audio.file_id)
-    elif message.sticker:
-        await message.reply_sticker(message.sticker.file_id)
-    elif message.photo:
-        await message.reply_photo(message.photo[-1].file_id)
-    elif message.voice:
-        await message.reply_voice(message.voice.file_id)
-
+    await update.message.copy(chat_id=update.effective_chat.id)
 
 persistence = PicklePersistence(filepath="bot_data.pkl")
 
