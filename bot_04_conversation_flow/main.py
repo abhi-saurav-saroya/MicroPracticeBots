@@ -14,6 +14,7 @@ Token = os.getenv("BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("state")
+    await update.message.reply_text(get_help_text())
     if state is None:
         context.user_data["state"] = "waiting_for_name"
         await update.message.reply_text(
@@ -148,10 +149,67 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_block(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pass
 
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    await update.message.reply_text(
+        "Your session has been cancelled.\n"
+        "Type /start to begin again."
+    )
 
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    state = context.user_data.get("state")
+
+    if state != "registered":
+        await update.message.reply_text(
+            "You are not fully registered yet."
+        )
+        return
+
+    await update.message.reply_text(
+        "Your Profile:\n"
+        f"Name: {context.user_data.get('name')}\n"
+        f"Age: {context.user_data.get('age')}\n"
+        f"Gender: {context.user_data.get('gender')}\n"
+        f"Location: {context.user_data.get('location')}"
+    )
+
+async def appeal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    state = context.user_data.get("state")
+
+    if state != "blocked":
+        await update.message.reply_text(
+            "You are not blocked."
+        )
+        return
+
+    context.user_data.clear()
+    context.user_data["state"] = "waiting_for_name"
+
+    await update.message.reply_text(
+        "Your appeal has been accepted.\n"
+        "Let's try again.\n"
+        "What is your name?"
+    )
+
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await get_help_text()
+
+def get_help_text():
+    return (
+        "📖 Available Commands:\n"
+        "/start - Start or view registration\n"
+        "/cancel - Cancel current session\n"
+        "/profile - View your profile\n"
+        "/appeal - Request unblock if blocked\n"
+        "/help - Show this help message"
+    )
 
 app = ApplicationBuilder().token(Token).build()
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("cancel", cancel))
+app.add_handler(CommandHandler("profile", profile))
+app.add_handler(CommandHandler("appeal", appeal))
+app.add_handler(CommandHandler("help", help))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 
